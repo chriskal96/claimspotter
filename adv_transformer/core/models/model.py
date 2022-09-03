@@ -29,8 +29,11 @@ from adv_transformer.core.models.ctransf.modeling_auto import TFAutoModel, AutoC
 
 class ClaimSpotterModel(tf.keras.models.Model):
     def __init__(self, cls_weights=None):
+        logging.info("Initialize 1")
         super(ClaimSpotterModel, self).__init__()
+        logging.info("Initialize 2")
         self.layer = ClaimSpotterLayer(cls_weights if cls_weights is not None else [1 for _ in range(FLAGS.cs_num_classes)])
+        logging.info("Initialize 3")
         self.adv = None
 
     def call(self, x, **kwargs):
