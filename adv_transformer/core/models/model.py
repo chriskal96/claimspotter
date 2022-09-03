@@ -94,7 +94,9 @@ class ClaimSpotterLayer(tf.keras.layers.Layer):
         config.attention_probs_dropout_prob = 1 - FLAGS.cs_kp_tfm_attn
         logging.info("ClaimSpotterLayer 2")
         self.transf_model = TFAutoModel.from_pretrained(FLAGS.cs_tfm_type, config=config)
+        logging.info("ClaimSpotterLayer 2.1")
         glorot_init = tf.keras.initializers.GlorotNormal()
+        logging.info("ClaimSpotterLayer 2.2")
         self.adv_weights = tf.Variable(glorot_init(shape=(FLAGS.cs_hidden_size,)), name='adv_weights',
                                        constraint=lambda x: tf.clip_by_value(x, *FLAGS.cs_perturb_norm_length_range))
         logging.info("ClaimSpotterLayer 3")
