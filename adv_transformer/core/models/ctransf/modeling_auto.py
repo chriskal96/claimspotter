@@ -390,12 +390,15 @@ class TFAutoModel(object):
             model = TFAutoModel.from_pretrained('./pt_model/bert_pytorch_model.bin', from_pt=True, config=config)
 
         """
+        logging.info("TFAuto 1")
         config = kwargs.pop("config", None)
         if not isinstance(config, PretrainedConfig):
             config = AutoConfig.from_pretrained(pretrained_model_name_or_path, **kwargs)
-
+        logging.info("TFAuto 2")
         for config_class, model_class in TF_MODEL_MAPPING.items():
+            logging.info("TFAuto 3")
             if isinstance(config, config_class):
+                logging.info("TFAuto 4")
                 return model_class.from_pretrained(pretrained_model_name_or_path, *model_args, config=config, **kwargs)
         raise ValueError(
             "Unrecognized configuration class {} for this kind of TFAutoModel: {}.\n"
