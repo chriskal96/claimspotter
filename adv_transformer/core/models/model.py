@@ -88,25 +88,26 @@ class ClaimSpotterModel(tf.keras.models.Model):
 class ClaimSpotterLayer(tf.keras.layers.Layer):
     def __init__(self, cls_weights=None):
         super(ClaimSpotterLayer, self).__init__()
-
+        logging.info("ClaimSpotterLayer 1")
         config = AutoConfig.from_pretrained(FLAGS.cs_tfm_type)
         config.hidden_dropout_prob = 1 - FLAGS.cs_kp_tfm_hidden
         config.attention_probs_dropout_prob = 1 - FLAGS.cs_kp_tfm_attn
-
+        logging.info("ClaimSpotterLayer 2")
         self.transf_model = TFAutoModel.from_pretrained(FLAGS.cs_tfm_type, config=config)
         glorot_init = tf.keras.initializers.GlorotNormal()
         self.adv_weights = tf.Variable(glorot_init(shape=(FLAGS.cs_hidden_size,)), name='adv_weights',
                                        constraint=lambda x: tf.clip_by_value(x, *FLAGS.cs_perturb_norm_length_range))
-
+        logging.info("ClaimSpotterLayer 3")
         self.dropout_layer = tf.keras.layers.Dropout(rate=1-FLAGS.cs_kp_cls)
         self.fc_output_layer = tf.keras.layers.Dense(FLAGS.cs_num_classes)
         if FLAGS.cs_cls_hidden:
             self.fc_hidden_layer = tf.keras.layers.Dense(FLAGS.cs_cls_hidden, activation='relu')
-
+        logging.info("ClaimSpotterLayer 4")
         self.computed_cls_weights = cls_weights
 
         self.optimizer = tf.optimizers.Adam(learning_rate=FLAGS.cs_lr)
         self.vars_to_train = []
+        logging.info("ClaimSpotterLayer 5")
 
     def call(self, x, **kwargs):
         assert 'training' in kwargs
