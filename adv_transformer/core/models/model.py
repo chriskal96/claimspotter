@@ -93,6 +93,8 @@ class ClaimSpotterLayer(tf.keras.layers.Layer):
         config.hidden_dropout_prob = 1 - FLAGS.cs_kp_tfm_hidden
         config.attention_probs_dropout_prob = 1 - FLAGS.cs_kp_tfm_attn
         logging.info("ClaimSpotterLayer 2")
+        logging.info("config :")
+        logging.info(config)
         self.transf_model = TFAutoModel.from_pretrained(FLAGS.cs_tfm_type, config=config)
         logging.info("ClaimSpotterLayer 2.1")
         glorot_init = tf.keras.initializers.GlorotNormal()
