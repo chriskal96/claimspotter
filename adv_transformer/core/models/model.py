@@ -38,7 +38,9 @@ class ClaimSpotterModel(tf.keras.models.Model):
 
     def warm_up(self):
         input_ph_id = tf.keras.layers.Input(shape=(FLAGS.cs_max_len,), dtype='int32')
+        logging.info("Warming up 1")
         input_ph_sent = tf.keras.layers.Input(shape=(2,), dtype='float32')
+        logging.info("Warming up 2")
 
         self.layer.call((input_ph_id, input_ph_sent), training=False)
 
@@ -105,13 +107,13 @@ class ClaimSpotterLayer(tf.keras.layers.Layer):
 
     def call(self, x, **kwargs):
         assert 'training' in kwargs
-
+        logging.info("Call 1")
         x_id, x_sent = x[0], x[1]
 
         training = kwargs.get('training')
         perturb = kwargs.get('perturb', None)
         get_embedding = kwargs.get('get_embedding', -1)
-
+        logging.info("Call 2")
         if get_embedding == -1:
             tfm_output = self.transf_model(x_id, training=training, perturb=perturb, return_dict=True)['pooler_output']
         else:
@@ -129,7 +131,8 @@ class ClaimSpotterLayer(tf.keras.layers.Layer):
 
         if not self.vars_to_train:
             self.vars_to_train = self.select_train_vars()
-
+        logging.info("Call 3")
+        
         if get_embedding == -1:
             return ret
         else:
