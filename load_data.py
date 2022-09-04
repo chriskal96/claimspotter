@@ -14,6 +14,7 @@ climate_dt["text"] = climate_jsonl.claim
 climate_dt["label"] = climate_jsonl.claim_label
 climate_dt.loc[climate_dt['label'] == 'SUPPORTS', 'label'] = 1
 climate_dt.loc[climate_dt['label'] == 'REFUTES', 'label'] = 0
+climate_dt.loc[climate_dt['label'] == 'DISPUTED', 'label'] = 0
 climate_dt = climate_dt.drop(climate_dt[climate_dt.label == 'NOT_ENOUGH_INFO'].index)
 
 health_dt["sentence_id"] = health_jsonl._id
