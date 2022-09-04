@@ -105,25 +105,29 @@ class DataLoader:
                             del ret_txt[i]
                             del ret_lab[i]
             return ret_txt, ret_lab
-
+        logging.info("Load data 1")
         data_loc = (FLAGS.cs_prc_data_loc if not FLAGS.cs_use_clef_data else FLAGS.cs_prc_clef_loc)
 
         if not os.path.isfile(data_loc):
+            logging.info("Load data 2")
             FLAGS.cs_refresh_data = True
 
         if FLAGS.cs_refresh_data:
+            logging.info("Load data 3")
             train_data = (DataLoader.parse_json(FLAGS.cs_raw_data_loc) if not FLAGS.cs_use_clef_data else
                           read_clef_from_file(FLAGS.cs_raw_clef_train_loc))
             dj_eval_data = (DataLoader.parse_json(FLAGS.cs_raw_dj_eval_loc) if not FLAGS.cs_use_clef_data else
                             read_clef_from_file(FLAGS.cs_raw_clef_test_loc))
 
             if not FLAGS.cs_use_clef_data:
+                logging.info("Load data 4")
                 train_txt = [z[0] for z in train_data]
                 eval_txt = [z[0] for z in dj_eval_data]
 
                 train_lab = [z[1] for z in train_data]
                 eval_lab = [z[1] for z in dj_eval_data]
             else:
+                logging.info("Load data 5")
                 train_txt, train_lab = train_data
                 eval_txt, eval_lab = dj_eval_data
 
