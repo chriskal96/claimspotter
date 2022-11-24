@@ -34,13 +34,15 @@ from adv_transformer.core.models.model import ClaimSpotterModel
 from sklearn.metrics import f1_score, classification_report
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from adv_transformer.core.utils.compute_ndcg import compute_ndcg
+from torch.utils.tensorboard import SummaryWriter
+import pandas as pd
 
 K = tf.keras
 
 
 def train_model(train_x, train_y, train_len, test_x, test_y, test_len, class_weights, fold):
     assert test_len > 0
-
+    tb_writer = SummaryWriter()
     dataset_train = tf.data.Dataset.from_tensor_slices(([x[0] for x in train_x], [x[1] for x in train_x], train_y)).shuffle(
         buffer_size=train_len).batch(FLAGS.cs_batch_size_reg if not FLAGS.cs_adv_train else FLAGS.cs_batch_size_adv)
     dataset_test = tf.data.Dataset.from_tensor_slices(([x[0] for x in test_x], [x[1] for x in test_x], test_y)).shuffle(
@@ -89,6 +91,8 @@ def train_model(train_x, train_y, train_len, test_x, test_y, test_len, class_wei
 
         if epoch % FLAGS.cs_stat_print_interval == 0:
             log_string = 'Epoch {:>3} Loss: {:>7.4} Acc: {:>7.4f}% '.format(epoch + 1, epoch_loss, epoch_acc * 100)
+            tb_writer.add_scalar("Epoch loss", epoch_loss, epoch)
+            tb_writer.add_scalar("Epoch accuracy", epoch_acc * 100, epoch)
 
             val_loss, val_acc = 0, 0
             val_y, val_pred = [], []
@@ -126,6 +130,8 @@ def train_model(train_x, train_y, train_len, test_x, test_y, test_len, class_wei
                 'val_loss': val_loss.numpy().tolist(),
                 'val_acc': val_acc.numpy().tolist()
             })
+            tb_writer.add_scalar("F1 Weighted", f1_wei , epoch)
+            tb_writer.add_scalar("F1 Macro", f1_wei, epoch)
             aggregated_performance.append((f1_wei, loc))
 
     return list(sorted(aggregated_performance, key=lambda x: x[0], reverse=True))[0]
@@ -166,6 +172,7 @@ def main():
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
     print_flags()
+    tb_writer = SummaryWriter()
 
     if os.path.isdir(FLAGS.cs_tb_dir):
         rmtree(FLAGS.cs_tb_dir)
@@ -218,6 +225,12 @@ def main():
             except Exception as e:
                 agg_pred = cur_pred
 
+            f1_mac_iter = f1_score(agg_y, np.argmax(agg_pred, axis=1), average='macro')
+            f1_wei_iter = f1_score(agg_y, np.argmax(agg_pred, axis=1), average='weighted')
+
+            tb_writer.add_scalar("F1 Weighted by Iteration", f1_mac_iter , iteration)
+            tb_writer.add_scalar("F1 Macro by Iteration", f1_wei_iter, iteration)
+
             print_str = '|     Iteration #{} OK     |'.format(iteration + 1)
             horz_str = ''.join(['-' for _ in range(len(print_str))])
             vert_str = '|' + ''.join([' ' for _ in range(len(print_str) - 2)]) + '|'
@@ -235,6 +248,9 @@ def main():
         logging.info('Final stats | F1-Mac: {:>.4f} F1-Wei: {:>.4f} nDCG: {:>.4f}'.format(
             f1_mac, f1_wei, ndcg))
         print(classification_report(agg_y, np.argmax(agg_pred, axis=1), target_names=target_names, digits=4))
+        report = classification_report(agg_y, np.argmax(agg_pred, axis=1), target_names=target_names, digits=4, output_dict=True)
+        df = pd.DataFrame(report).transpose()
+        df.to_csv('classification_report.csv')
     else:
         train_data = data_load.load_training_data()
         test_data = data_load.load_testing_data()
